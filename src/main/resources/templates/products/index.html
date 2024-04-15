@@ -40,6 +40,13 @@
                 <img th:src="@{'/images/' + ${product.imageFileName}}" alt="${product.productName}" width="50px" height="60px">
             </td>
             <td th:text ="${product.createdAt.toString().substring(0,10)}"></td>
+            <td style="white-space:nowrap">
+                <a class="btn btn-primary btn-sm" href="@{/products/edit(id=${product.productId})}">Edit</a>
+                <a href="@{/products/delete(id=${product.productId})}"
+                   class="btn btn-danger btn-sm"
+                   onclick="return confirm('Are you sure ?')"
+                >Delete</a>
+            </td>
 
         </tr>
         </tbody>
