@@ -1,5 +1,6 @@
 package com.ecommerce.shoppingcurd.controller;
 
+import com.ecommerce.shoppingcurd.dto.ProductDto;
 import com.ecommerce.shoppingcurd.entity.Product;
 import com.ecommerce.shoppingcurd.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,5 +21,12 @@ public class ProductController {
         List<Product> products = productService.getProducts();
         model.addAttribute("products",products);
         return "products/index";
+    }
+
+    @GetMapping("/create")
+    public String showCreatePage(Model model){
+        ProductDto productDto = new ProductDto();
+        model.addAttribute("productDto",productDto);
+        return "products/createProduct";
     }
 }
