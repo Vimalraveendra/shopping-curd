@@ -19,4 +19,9 @@ public class ProductServiceImp implements ProductService {
     public List<Product> getProducts(){
         return repository.findAll(Sort.by(Sort.Direction.DESC,"ProductId"));
     }
+
+    @Override
+    public Product saveProduct(Product product) {
+        return repository.save(product);
+    }
 }
