@@ -24,4 +24,14 @@ public class ProductServiceImp implements ProductService {
     public Product saveProduct(Product product) {
         return repository.save(product);
     }
+
+    @Override
+    public Product getProductById(Long id) {
+        return repository.findById(id).get();
+    }
+
+    @Override
+    public void updateProduct(Product product) {
+        repository.save(product);
+    }
 }
