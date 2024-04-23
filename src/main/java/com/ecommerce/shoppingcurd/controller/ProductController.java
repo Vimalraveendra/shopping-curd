@@ -9,10 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -80,5 +77,27 @@ public class ProductController {
         productService.saveProduct(product);
         return "redirect:/products";
 
+    }
+    @GetMapping("/edit")
+    public String showEditPage(Model model, @RequestParam Long id){
+        try{
+            Product existingProduct = productService.getProductById(id);
+            // adding existingProduct object to the model so that it accessible to EditProduct page
+            model.addAttribute("product",existingProduct);
+
+            ProductDto productDto = new ProductDto();
+            productDto.setProductName(existingProduct.getProductName());
+            productDto.setBrand(existingProduct.getBrand());
+            productDto.setCategory(existingProduct.getCategory());
+            productDto.setPrice(existingProduct.getPrice());
+            productDto.setDescription(existingProduct.getDescription());
+            // adding productDto object to the model so that the data can append to the EditProduct page
+            model.addAttribute("productDto",productDto);
+        }catch (Exception ex){
+            System.out.println("Exception: " + ex.getMessage());
+            return "redirect:/products";
+        }
+
+        return "products/EditProduct";
     }
 }
