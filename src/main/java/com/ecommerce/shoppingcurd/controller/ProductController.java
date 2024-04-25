@@ -24,46 +24,48 @@ import java.util.List;
 @RequestMapping("/products")
 public class ProductController {
     @Autowired
-  private ProductService productService;
+    private ProductService productService;
+
     @GetMapping("")
-    public String getProducts(Model model){
+    public String getProducts(Model model) {
         List<Product> products = productService.getProducts();
-        model.addAttribute("products",products);
+        model.addAttribute("products", products);
         return "products/index";
     }
 
     @GetMapping("/create")
-    public String showCreatePage(Model model){
+    public String showCreatePage(Model model) {
         ProductDto productDto = new ProductDto();
-        model.addAttribute("productDto",productDto);
+        model.addAttribute("productDto", productDto);
         return "products/createProduct";
     }
+
     @PostMapping("/create")
     public String createProduct(@Valid @ModelAttribute ProductDto productDto,
-    BindingResult result){
-        if(productDto.getImageFile().isEmpty()){
-            result.addError(new FieldError("productDto","imageFile","The image file is required"));
+                                BindingResult result) {
+        if (productDto.getImageFile().isEmpty()) {
+            result.addError(new FieldError("productDto", "imageFile", "The image file is required"));
         }
 
-        if(result.hasErrors()){
+        if (result.hasErrors()) {
             return "products/createProduct";
         }
         // save image to database
-        MultipartFile image =productDto.getImageFile();
-        Date createdAt= new Date();
-        String storageFileName=createdAt.getTime() + "_" + image.getOriginalFilename();
+        MultipartFile image = productDto.getImageFile();
+        Date createdAt = new Date();
+        String storageFileName = createdAt.getTime() + "_" + image.getOriginalFilename();
 
-        try{
+        try {
             String uploadDir = "public/images/";
-            Path uploadPath =  Paths.get(uploadDir);
-            if(!Files.exists(uploadPath)) {
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
                 Files.createFile(uploadPath);
             }
-            try(InputStream inputStream=image.getInputStream()) {
-                Files.copy(inputStream,Paths.get(uploadDir+ storageFileName),
+            try (InputStream inputStream = image.getInputStream()) {
+                Files.copy(inputStream, Paths.get(uploadDir + storageFileName),
                         StandardCopyOption.REPLACE_EXISTING);
             }
-        }catch(Exception ex){
+        } catch (Exception ex) {
             System.out.println("Exception: " + ex.getMessage());
         }
         Product product = new Product();
@@ -78,12 +80,13 @@ public class ProductController {
         return "redirect:/products";
 
     }
+
     @GetMapping("/edit")
-    public String showEditPage(Model model, @RequestParam Long id){
-        try{
+    public String showEditPage(Model model, @RequestParam Long id) {
+        try {
             Product existingProduct = productService.getProductById(id);
             // adding existingProduct object to the model so that it accessible to EditProduct page
-            model.addAttribute("product",existingProduct);
+            model.addAttribute("product", existingProduct);
 
             ProductDto productDto = new ProductDto();
             productDto.setProductName(existingProduct.getProductName());
@@ -92,8 +95,8 @@ public class ProductController {
             productDto.setPrice(existingProduct.getPrice());
             productDto.setDescription(existingProduct.getDescription());
             // adding productDto object to the model so that the data can append to the EditProduct page
-            model.addAttribute("productDto",productDto);
-        }catch (Exception ex){
+            model.addAttribute("productDto", productDto);
+        } catch (Exception ex) {
             System.out.println("Exception: " + ex.getMessage());
             return "redirect:/products";
         }
@@ -107,30 +110,30 @@ public class ProductController {
             @RequestParam Long id,
             @Valid @ModelAttribute ProductDto productDto,
             BindingResult result
-    ){
-        try{
-            Product product= productService.getProductById(id);
-            model.addAttribute("product",product);
-            if(result.hasErrors()){
+    ) {
+        try {
+            Product product = productService.getProductById(id);
+            model.addAttribute("product", product);
+            if (result.hasErrors()) {
                 return "products/editProduct";
             }
             //check image file updated
-            if(!productDto.getImageFile().isEmpty()) {
+            if (!productDto.getImageFile().isEmpty()) {
                 //delete old image
-                String uploadDir="public/images/";
-                Path oldImagePath =Paths.get(uploadDir+product.getImageFileName());
+                String uploadDir = "public/images/";
+                Path oldImagePath = Paths.get(uploadDir + product.getImageFileName());
                 try {
                     Files.delete(oldImagePath);
-                }catch (Exception ex) {
+                } catch (Exception ex) {
                     System.out.println("Exception: " + ex.getMessage());
                 }
                 // save new image file
-                MultipartFile image =  productDto.getImageFile();
+                MultipartFile image = productDto.getImageFile();
                 Date createdAt = new Date();
                 String storageFileName = createdAt.getTime() + "_" + image.getOriginalFilename();
                 // here we are saving the image on the server.
-                try(InputStream inputStream= image.getInputStream()) {
-                    Files.copy(inputStream,Paths.get(uploadDir + storageFileName),
+                try (InputStream inputStream = image.getInputStream()) {
+                    Files.copy(inputStream, Paths.get(uploadDir + storageFileName),
                             StandardCopyOption.REPLACE_EXISTING
                     );
                 }
@@ -145,10 +148,28 @@ public class ProductController {
             product.setDescription(productDto.getDescription());
             productService.updateProduct(product);
 
-        }catch (Exception ex){
+        } catch (Exception ex) {
             System.out.println("Exception: " + ex.getMessage());
         }
         return "redirect:/products";
 
+    }
+
+    @GetMapping("/delete")
+    public String deleteProduct(@RequestParam Long id) {
+        try {
+            Product product = productService.getProductById(id);
+            // delete product image
+            Path imagePath = Paths.get("public/images/" + product.getImageFileName());
+            try {
+                Files.delete(imagePath);
+            } catch (Exception ex) {
+                System.out.println("Exception: " + ex.getMessage());
+            }
+            productService.deleteProduct(id);
+        } catch (Exception ex) {
+            System.out.println("Exception: " + ex.getMessage());
+        }
+        return "redirect:/products";
     }
 }
